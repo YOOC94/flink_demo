@@ -1,7 +1,8 @@
 package com.yc.flink.data_source;
 
-import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import java.util.Random;
 
 /**
  * @ClassName:MyParalleSource
@@ -11,9 +12,8 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
  * 可以并行生产数据
  * https://blog.csdn.net/shenshouniu/article/details/84728884
  */
-public class MyParalleSource implements ParallelSourceFunction<Long>{
+public class MyParalleSource extends RichParallelSourceFunction<Tuple2<String,Integer>> {
 
-    private long count = 1L;
     private boolean isRunning = true;
 
     /**
@@ -22,9 +22,13 @@ public class MyParalleSource implements ParallelSourceFunction<Long>{
      * @throws Exception
      */
     public void run(SourceContext ctx) throws Exception {
+        Random random = new Random(System.currentTimeMillis());
         while (isRunning){
-            ctx.collect( count );
-            count++;
+
+            String key  = "类别" + (char)('A' + random.nextInt(3));
+            int value = random.nextInt(10) + 1;
+            System.out.println(String.format("发送数据:\t (%s,%d)",key,value));
+            ctx.collect( new Tuple2<>(key,value));
             //每秒生产数据
             Thread.sleep( 1000 );
         }
