@@ -54,13 +54,16 @@ public class SocketTextStream {
                     public void process(Tuple key, Context context, Iterable<Tuple2<String, Integer>> elements, Collector<Tuple2> out) throws Exception {
                         System.out.println("执行process");
                         for (Tuple2<String, Integer> element : elements) {
-                            if (map.containsKey(element.f0)){
+                            if (!map.containsKey( element.f0 )){
                                 map.put(element.f0,element.f1);
+                            }else {
+                                int i = map.get( element.f0 ) + 1;
+                                map.put( element.f0,i );
                             }
                         }
                     }
-                });
-
+                }).print();
+        env.execute( "Socket window count" );
 
 //        dSource.map(new MapFunction<String, Tuple2<Integer,Integer>>() {
 //            @Override

@@ -28,6 +28,12 @@ public class StreamingDemoWithPralalleSource {
 
         DataStream<Tuple2<String, Integer>> dSource = env.addSource(new MyParalleSource()).setParallelism(2);
 
+        /*
+            注意：以下类型是无法作为key的
+            1：一个实体类对象，没有重写hashCode方法，并且依赖object的hashCode方法
+            2：一个任意形式的数组类型
+            3：基本数据类型，int，long
+         */
         KeyedStream<Tuple2<String, Integer>, Tuple> ks = dSource.keyBy(0);
         ks.sum(1).keyBy(new KeySelector<Tuple2<String, Integer>, Object>() {
             @Override
