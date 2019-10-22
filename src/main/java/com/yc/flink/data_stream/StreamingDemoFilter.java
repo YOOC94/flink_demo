@@ -1,17 +1,12 @@
 package com.yc.flink.data_stream;
 
 import com.yc.flink.data_source.MyParalleSource;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.time.Time;
-
-import java.util.Objects;
 
 /**
  * @ClassName:StreamingDemoFiltr
@@ -19,7 +14,7 @@ import java.util.Objects;
  * @Date: 2019/10/21 22:46
  * @Description:
  */
-public class StreamingDemoFiltr {
+public class StreamingDemoFilter {
     public static void main(String[] args) throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         DataStreamSource<Tuple2<String, Integer>> filterTest = env.addSource( new MyParalleSource() ).setParallelism( 1 );
@@ -45,7 +40,7 @@ public class StreamingDemoFiltr {
             }
         }).print().setParallelism( 1 );
 
-        String jobName = StreamingDemoFiltr.class.getSimpleName();
+        String jobName = StreamingDemoFilter.class.getSimpleName();
         env.execute( jobName );
     }
 }
