@@ -47,6 +47,5 @@ public class StreamingDemoFiltr {
 
         String jobName = StreamingDemoFiltr.class.getSimpleName();
         env.execute( jobName );
-
     }
 }
