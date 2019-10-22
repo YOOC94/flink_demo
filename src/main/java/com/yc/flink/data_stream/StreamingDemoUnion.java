@@ -1,18 +1,21 @@
 package com.yc.flink.data_stream;
 
-import com.yc.flink.data_source.MyParalleSource;
+
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.ConnectedStreams;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.time.Time;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName:StreamingDemoUnion
  * @Auther: YC
  * @Date: 2019/10/21 23:19
- * @Description:  Connect：和union类似，但是只能连接两个流，两个流的数据类型可以不同，会对两个流中的数据应用不同的处理方法。
+ * @Description:  Connect：和union似类，但是只能连接两个流，两个流的数据类型可以不同，会对两个流中的数据应用不同的处理方法。
  */
 public class StreamingDemoUnion {
     public static void main(String[] args) throws Exception{
@@ -21,21 +24,43 @@ public class StreamingDemoUnion {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         //将source1 和 source2 组装到一起
-        DataStream<Tuple2<String, Integer>> source1 = env.addSource( new MyParalleSource() ).setParallelism( 1 );
-        DataStream<Tuple2<String,Integer>> source2 = env.addSource( new MyParalleSource() ).setParallelism( 1 );
 
-        DataStream<Tuple2<String, Integer>> source = source1.union( source2 );
+        List<Integer> source1Data = new ArrayList<>();
+        source1Data.add(1);
+        source1Data.add(2);
+        List<Integer> source2Data = new ArrayList<>();
+        source2Data.add(11);
+        source2Data.add(22);
+        DataStreamSource<Integer> source1 = env.fromCollection(source1Data);
+        DataStreamSource<Integer> source2 = env.fromCollection(source2Data);
 
-        source.map( new MapFunction<Tuple2<String,Integer>, Tuple2<String,Integer>>() {
+//                DataStream<Integer> source = source1.union(source2);
+//        source.map(new MapFunction<Integer, Integer>() {
+//            @Override
+//            public Integer map(Integer value) throws Exception {
+//
+//                System.out.println("接受到的数据: " + value);
+//                return value;
+//            }
+//        }).print().setParallelism(1);
+
+        ConnectedStreams<Integer, Integer> source = source1.connect(source2);
+
+        source.getFirstInput().map(new MapFunction<Integer, Integer>() {
             @Override
-            public Tuple2<String, Integer> map(Tuple2<String, Integer> value) throws Exception {
-                System.out.println("原始接收到的数据：" + value );
-                return value;
+            public Integer map(Integer value) throws Exception {
+                return value * 10;
             }
-        } )
-                .timeWindowAll( Time.seconds(2) )
-                .sum( 1)
-                .print().setParallelism( 1 );
+        }).print();
+
+        source.getSecondInput().map(new MapFunction<Integer, Integer>() {
+
+            @Override
+            public Integer map(Integer value) throws Exception {
+                return value * 2;
+            }
+        }).print();
+
         String jobName = StreamingDemoUnion.class.getSimpleName();
         env.execute( jobName );
     }

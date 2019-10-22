@@ -49,9 +49,9 @@ public class SocketTextStream {
             }
         }).keyBy(0)
                 .timeWindow(Time.seconds(5))
-                .process(new ProcessWindowFunction<Tuple2<String, Integer>, Tuple2, Tuple, TimeWindow>() {
+                .process(new ProcessWindowFunction<Tuple2<String, Integer>, Map<String,Integer>, Tuple, TimeWindow>() {
                     @Override
-                    public void process(Tuple key, Context context, Iterable<Tuple2<String, Integer>> elements, Collector<Tuple2> out) throws Exception {
+                    public void process(Tuple key, Context context, Iterable<Tuple2<String, Integer>> elements, Collector<Map<String,Integer>> out) throws Exception {
                         System.out.println("执行process");
                         for (Tuple2<String, Integer> element : elements) {
                             if (!map.containsKey( element.f0 )){
@@ -61,6 +61,7 @@ public class SocketTextStream {
                                 map.put( element.f0,i );
                             }
                         }
+                        out.collect(map);
                     }
                 }).print();
         env.execute( "Socket window count" );
@@ -90,9 +91,6 @@ public class SocketTextStream {
 //                    }
 //                }).print();
 //        env.execute("Socket window count");
-
     }
-
-
 }
 
