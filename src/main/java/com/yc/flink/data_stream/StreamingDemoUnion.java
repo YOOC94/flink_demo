@@ -2,10 +2,8 @@ package com.yc.flink.data_stream;
 
 
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.streaming.api.datastream.ConnectedStreams;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.CoMapFunction;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
@@ -26,9 +24,7 @@ public class StreamingDemoUnion {
 
        //获取Flink运行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
         //将source1 和 source2 组装到一起
-
         List<Integer> source1Data = new ArrayList<>();
         source1Data.add(1);
         source1Data.add(2);
@@ -46,7 +42,7 @@ public class StreamingDemoUnion {
 
         ConnectedStreams<Integer, Integer> source = source1.connect(source2);
 
-        source.map(new CoMapFunction<Integer, Integer, Integer>() {
+        SingleOutputStreamOperator<Integer> map = source.map(new CoMapFunction<Integer, Integer, Integer>() {
             @Override
             public Integer map1(Integer value1) throws Exception {
                 return value1 * 10;
@@ -61,7 +57,9 @@ public class StreamingDemoUnion {
             public Integer map(Integer value3) throws Exception {
                 return value3 + 1;
             }
-        }).countWindowAll(5,4).process(new ProcessAllWindowFunction<Integer, Integer, GlobalWindow>() {
+        });
+
+        map.countWindowAll(5,4).process(new ProcessAllWindowFunction<Integer, Integer, GlobalWindow>() {
             @Override
             public void process(Context context, Iterable<Integer> elements, Collector<Integer> out) throws Exception {
                 System.out.println(" 开始执行process" + System.currentTimeMillis());

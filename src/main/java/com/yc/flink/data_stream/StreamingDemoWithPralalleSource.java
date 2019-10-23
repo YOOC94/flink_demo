@@ -9,7 +9,9 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.util.Collector;
 
 
 import java.util.HashMap;
@@ -28,33 +30,36 @@ public class StreamingDemoWithPralalleSource {
 
         DataStream<Tuple2<String, Integer>> dSource = env.addSource(new MyParalleSource()).setParallelism(2);
 
+        DataStream<Tuple2<String, Integer>> broadcast = dSource.broadcast();
         /*
             注意：以下类型是无法作为key的
             1：一个实体类对象，没有重写hashCode方法，并且依赖object的hashCode方法
             2：一个任意形式的数组类型
             3：基本数据类型，int，long
          */
-        KeyedStream<Tuple2<String, Integer>, Tuple> ks = dSource.keyBy(0);
-        ks.sum(1).keyBy(new KeySelector<Tuple2<String, Integer>, Object>() {
-            @Override
-            public Object getKey(Tuple2<String, Integer> stringIntegerTuple2) throws Exception {
-                return "";
-            }
-        }).fold(new HashMap<String, Integer>(), new FoldFunction<Tuple2<String, Integer>, Map<String, Integer>>() {
-            @Override
-            public Map<String, Integer> fold(Map<String, Integer> accomutor, Tuple2<String, Integer> o) throws Exception {
-                accomutor.put(o.f0,o.f1);
-                return accomutor;
-            }
-        }).addSink(new SinkFunction<Map<String, Integer>>() {
-            @Override
-            public void invoke(Map<String, Integer> value, Context context) throws Exception {
-                System.out.println(value.values().stream().mapToInt(v -> v).sum());
-            }
-        });
-
-        //提交任务
-        String simpleName = StreamingDemoWithPralalleSource.class.getSimpleName();
-        env.execute( simpleName );
+//        KeyedStream<Tuple2<String, Integer>, Tuple> ks = dSource.keyBy(0);
+//        ks.sum(1).keyBy(new KeySelector<Tuple2<String, Integer>, Object>() {
+//            @Override
+//            public Object getKey(Tuple2<String, Integer> stringIntegerTuple2) throws Exception {
+//                return "";
+//            }
+//        }).fold(new HashMap<String, Integer>(), new FoldFunction<Tuple2<String, Integer>, Map<String, Integer>>() {
+//            @Override
+//            public Map<String, Integer> fold(Map<String, Integer> accomutor, Tuple2<String, Integer> o) throws Exception {
+//                accomutor.put(o.f0,o.f1);
+//                return accomutor;
+//            }
+//        }).addSink(new SinkFunction<Map<String, Integer>>() {
+//            @Override
+//            public void invoke(Map<String, Integer> value, Context context) throws Exception {
+//                System.out.println(value.values().stream().mapToInt(v -> v).sum());
+//            }
+//        });
+//
+//
+//
+//        //提交任务
+//        String simpleName = StreamingDemoWithPralalleSource.class.getSimpleName();
+//        env.execute( simpleName );
     }
 }
