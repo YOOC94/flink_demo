@@ -6,9 +6,14 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
+import org.apache.flink.util.Collector;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -26,6 +31,7 @@ public class KafkaConsumerWaterMarkExam {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 //        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+//        env.enableCheckpointing(5000L);
 
         FlinkKafkaConsumer010<StudentEvent> consumer = new FlinkKafkaConsumer010<>(topic, new StudentEventSchema(), prop);
 
@@ -46,7 +52,6 @@ public class KafkaConsumerWaterMarkExam {
                 return studentEvent;
             }
         });
-
         env.execute();
 
     }
