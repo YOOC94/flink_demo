@@ -6,15 +6,7 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
-import org.apache.flink.streaming.connectors.kafka.internals.KafkaTopicPartition;
-import org.apache.flink.util.Collector;
-
-import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Properties;
 
 public class KafkaConsumerWaterMarkExam {
@@ -35,15 +27,17 @@ public class KafkaConsumerWaterMarkExam {
 
         FlinkKafkaConsumer010<StudentEvent> consumer = new FlinkKafkaConsumer010<>(topic, new StudentEventSchema(), prop);
 
-        //从指定offset 开始消费数据
-        HashMap<KafkaTopicPartition, Long> specificStartOffsets = new HashMap<>();
-        specificStartOffsets.put(new KafkaTopicPartition("yc_station", 0), 128857L);
 
 
 
+
+//        //从指定offset 开始消费数据
+//        HashMap<KafkaTopicPartition, Long> specificStartOffsets = new HashMap<>();
+//        specificStartOffsets.put(new KafkaTopicPartition("yc_station", 0), 128857L);
 //        consumer.assignTimestampsAndWatermarks(new CustomWatermarkEmitter())
 //        consumer.setStartFromTimestamp(1573202359897L);
 //        consumer.setStartFromEarliest();
+
         DataStream<StudentEvent> source = env.addSource(consumer);
         source.map(new MapFunction<StudentEvent, StudentEvent>() {
             @Override
